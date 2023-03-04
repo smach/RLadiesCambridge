@@ -1,0 +1,230 @@
+---
+title: "Astonishingly Easy Mapping with mapview"
+echo: true
+format: 
+  revealjs:
+    theme: [rladies.scss, my.css]
+    self-contained: true
+title-slide-attributes: 
+  data-background-image: "images/do_more_with_r.webp"
+  data-background-opacity: "0.2"    
+editor: source
+---
+
+<br /><br />
+
+<center>
+
+### [Exploratory spatial dataviz]{.purple}
+
+### [with the mapview R package]{.purple}
+
+<br /><br />
+
+#### Sharon Machlis at RLadies Cambridge March 2023 {.purple}
+
+</center>
+
+## Who am I?
+
+::: incremental
+-   Director, editorial data & analytics at Foundry (publisher of Computerworld, InfoWord, PCWorld, Macworld)
+-   Author of InfoWorld's Do More With R Series
+-   Author, Practical R for Mass Communication & Journalism (CRC Press)
+:::
+
+## Who aren't I?
+
+## Who aren't I?
+
+::: incremental
+A design expert
+:::
+
+------------------------------------------------------------------------
+
+![](images/01_mapview.png){fig-alt="Screen shot of my Astonishingly Easy Mapping with mapview article" fig-align="center"}
+
+## Data
+
+England and Wales 2021 Census data downloaded from the fabulous Census 2021 Explorer at ObservableHQ.com:
+
+[https://observablehq.com/\@jwolondon/census-2021-explorer](https://observablehq.com/@jwolondon/census-2021-explorer){.uri}
+
+![](images/02_datadownload.png){fig-alt="Image of data download options including Geography, Variable, and Extra columns with a Save as CSV button"}
+
+## 1. Import *data* files into R
+(Pre-wrangled, script is in the GitHub repo)
+
+```{r}
+library(pacman)
+p_load(sf, mapview, dplyr, stringr)
+mydata <- readRDS("data/census_data_2021.Rds")
+glimpse(mydata)
+```
+
+## 2. Read *spatial *file into R with sf's st_read()
+
+```{r}
+mygeo <- st_read("data/msoas.json", quiet = TRUE)
+```
+
+Quick plot to see what we have
+
+```{r}
+plot(mygeo)
+```
+
+## 3. Join data with geography
+
+```{r}
+mysf <- left_join(mygeo, mydata, by = "code")
+glimpse(mysf)
+```
+
+## 4. Super easy mapping!
+
+```{r}
+mapview(mysf)
+```
+
+## Change what the rollover to the area name
+The rollover displays row names, so change that to areaName. 
+
+```{r}
+rownames(mysf) <- mysf$areaName
+mapview(mysf)
+```
+
+## Cambridge
+Several dplyr verbs work, including `filter()`
+
+```{r}
+cambridge <- mysf |>
+  filter(str_detect(areaName, "Cambridge"))
+  mapview(cambridge)
+```
+
+
+## Map population 
+color by column value with `zcol`
+
+## Map population 
+color by column value with `zcol` 
+
+```{r}
+mapview(cambridge, zcol = "population")
+```
+
+
+## Add background tiles
+
+```{r}
+#| code-line-numbers: "2" 
+
+mapview(cambridge, zcol = "population",
+        map.types = c("CartoDB.Positron", "Esri.WorldImagery")
+        )
+```
+
+## Why no tiles? No CRS!
+Coordinate reference system: How 3D globe is translated to a 2-D drawing. 
+Step 1: 
+These files use the British National Grid coordinates, a CRS of 27700. Set that. 
+
+```{r}
+st_crs(cambridge) <- 27700
+```
+
+## Change the projection to system used by most map tiles
+Most background map tiles use 4326.
+
+```{r}
+st_crs(cambridge) <- 27700
+cambridge <- st_transform(cambridge, 4326)
+# cambridge <- st_transform(cambridge, "+init=epsg:27700", "+init=epsg:4326")
+
+```
+
+## Add background tiles
+
+```{r}
+ 
+mapview(cambridge, zcol = "population",
+        map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery")
+        )
+```
+
+
+## Change layer opacity
+
+```{r}
+#| code-line-numbers: "2"  
+mapview(cambridge, zcol = "population", 
+        alpha.regions = 0, lwd = 3, color = "white",
+        map.types = c("Esri.WorldImagery", "CartoDB.Positron", "OpenStreetMap.Mapnik")
+        )
+```
+
+## More tile options 
+
+https://leaflet-extras.github.io/leaflet-providers/preview/
+
+
+## Examples {background-iframe="https://leaflet-extras.github.io/leaflet-providers/preview/"}
+
+
+
+## Add more data layers
+
+```{r}
+mapview(cambridge, zcol = "population", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery")) +
+mapview(cambridge, zcol = "popDensity") +
+mapview(cambridge, zcol = "dep2", laye.name = "Econ depriv in 2 categories")  
+```
+
+## Turn off legends with legend = false
+
+```{r}
+mapview(cambridge, zcol = "population", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery"), legend = FALSE) +
+mapview(cambridge, zcol = "popDensity", legend = FALSE) +
+mapview(cambridge, zcol = "dep2", laye.name = "Econ depriv in 2 categories", legend = FALSE)  
+```
+
+## Change the default color palette
+
+```{r}
+#| code-line-numbers: "2" 
+mapview(cambridge, zcol = "popDensity", legend = FALSE, 
+        col.regions = rcartocolor::carto_pal(name = "SunsetDark"))
+```
+
+## Side by side maps with slider!
+
+```{r}
+no_deprivation <- mapview(cambridge, zcol = "dep0", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery"), col.regions = RColorBrewer::brewer.pal(9, "Reds"),  layer.name = "No deprivation")
+two_deprivation <- mapview(cambridge, zcol = "dep2", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery"), col.regions = RColorBrewer::brewer.pal(9, "Reds"),  layer.name = "2 deprivations")
+no_deprivation | two_deprivation
+```
+
+
+
+## Add address search with leafem!
+
+```{r}
+#| code-line-numbers: "4" 
+library(leafem)
+mapview(cambridge, zcol = "population", legend = FALSE, 
+  col.regions = rcartocolor::carto_pal(name = "SunsetDark")) %>%
+  garnishMap(leaflet.extras::addSearchOSM)
+```
+
+
+## Customize popups
+
+```{r}
+my_popups <- str_glue("<strong>Area: {cambridge$areaName}</strong><br />Population Density: {cambridge$popDensity}<br />Total Population: {cambridge$population}") %>%
+  lapply(htmltools::HTML)
+mapview(cambridge, zcol = "popDensity", map.types = "CartoDB.Positron", popup = my_popups, label = my_popups)
+```
+
