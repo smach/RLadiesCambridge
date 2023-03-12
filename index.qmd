@@ -54,6 +54,7 @@ England and Wales 2021 Census data downloaded from the fabulous Census 2021 Expl
 ![](images/02_datadownload.png){fig-alt="Image of data download options including Geography, Variable, and Extra columns with a Save as CSV button"}
 
 ## 1. Import *data* files into R
+
 (Pre-wrangled, script is in the GitHub repo)
 
 ```{r}
@@ -63,7 +64,7 @@ mydata <- readRDS("data/census_data_2021.Rds")
 glimpse(mydata)
 ```
 
-## 2. Read *spatial *file into R with sf's st_read()
+## 2. Read *spatial* file into R with sf's st_read()
 
 ```{r}
 mygeo <- st_read("data/msoas.json", quiet = TRUE)
@@ -72,7 +73,7 @@ mygeo <- st_read("data/msoas.json", quiet = TRUE)
 Quick plot to see what we have
 
 ```{r}
-plot(mygeo)
+mapview(mygeo)
 ```
 
 ## 3. Join data with geography
@@ -82,14 +83,15 @@ mysf <- left_join(mygeo, mydata, by = "code")
 glimpse(mysf)
 ```
 
-## 4. Super easy mapping!
+## 4. Plot the joined data
 
 ```{r}
 mapview(mysf)
 ```
 
-## Change what the rollover to the area name
-The rollover displays row names, so change that to areaName. 
+## Change the rollover display
+
+The rollover displays the row names, so I'll set new row names:
 
 ```{r}
 rownames(mysf) <- mysf$areaName
@@ -97,7 +99,8 @@ mapview(mysf)
 ```
 
 ## Cambridge
-Several dplyr verbs work, including `filter()`
+
+Several dplyr verbs work on sf objects, including `filter()` to look at a portion of the data.
 
 ```{r}
 cambridge <- mysf |>
@@ -105,17 +108,13 @@ cambridge <- mysf |>
   mapview(cambridge)
 ```
 
+## Super easy choropleth maps
 
-## Map population 
-color by column value with `zcol`
-
-## Map population 
-color by column value with `zcol` 
+Color by one column's value with `zcol` argument
 
 ```{r}
 mapview(cambridge, zcol = "population")
 ```
-
 
 ## Add background tiles
 
@@ -128,15 +127,15 @@ mapview(cambridge, zcol = "population",
 ```
 
 ## Why no tiles? No CRS!
-Coordinate reference system: How 3D globe is translated to a 2-D drawing. 
-Step 1: 
-These files use the British National Grid coordinates, a CRS of 27700. Set that. 
+
+Coordinate reference system: How 3D globe is translated to a 2-D drawing. Step 1: These files use the British National Grid coordinates, a CRS of 27700. Set that.
 
 ```{r}
 st_crs(cambridge) <- 27700
 ```
 
 ## Change the projection to system used by most map tiles
+
 Most background map tiles use 4326.
 
 ```{r}
@@ -155,7 +154,6 @@ mapview(cambridge, zcol = "population",
         )
 ```
 
-
 ## Change layer opacity
 
 ```{r}
@@ -166,14 +164,11 @@ mapview(cambridge, zcol = "population",
         )
 ```
 
-## More tile options 
+## More tile options
 
 https://leaflet-extras.github.io/leaflet-providers/preview/
 
-
 ## Examples {background-iframe="https://leaflet-extras.github.io/leaflet-providers/preview/"}
-
-
 
 ## Add more data layers
 
@@ -207,8 +202,6 @@ two_deprivation <- mapview(cambridge, zcol = "dep2", map.types = c("CartoDB.Posi
 no_deprivation | two_deprivation
 ```
 
-
-
 ## Add address search with leafem!
 
 ```{r}
@@ -219,7 +212,6 @@ mapview(cambridge, zcol = "population", legend = FALSE,
   garnishMap(leaflet.extras::addSearchOSM)
 ```
 
-
 ## Customize popups
 
 ```{r}
@@ -228,3 +220,22 @@ my_popups <- str_glue("<strong>Area: {cambridge$areaName}</strong><br />Populati
 mapview(cambridge, zcol = "popDensity", map.types = "CartoDB.Positron", popup = my_popups, label = my_popups)
 ```
 
+## Other great R mapping packages
+
+::: incremental
+-   [**tmap**](https://r-tmap.github.io/tmap/index.html) Almost as easy to use, static and interactive working environments, built-in customized binning
+-   [**leaflet**](https://rstudio.github.io/leaflet/) A bit more complicated to use but extreme control over look and feel
+-   [**ggplot2**](https://ggplot2-book.org/maps.html) Not only for GIS of course, but useful mapping capabilities for those already familiar with the ecosystem
+:::
+
+## More on mapview
+
+["Astonishingly easy mapping in R with mapview"](https://www.infoworld.com/article/3644848/astonishingly-easy-mapping-in-r-with-mapview.html) - my InfoWorld article and video
+
+Package creator [Tim Appelhans's tutorial on YouTube](https://youtu.be/hUzVvGezwo8)
+
+## Thanks!
+
+Repo with Quarto file for these slides at <https://github.com/smach/RLadiesCambridge>
+
+Sharon Machlis: [smach\@fosstodon.org](https://fosstodon.org/@smach) on Mastodon
