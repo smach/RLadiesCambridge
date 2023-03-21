@@ -28,7 +28,7 @@ editor: source
 ## Who am I?
 
 ::: incremental
--   Director, editorial data & analytics at Foundry (publisher of Computerworld, InfoWord, PCWorld, Macworld)
+-   Director, editorial data & analytics at Foundry (publisher of Computerworld, InfoWorld, PCWorld, Macworld)
 -   Author of InfoWorld's Do More With R Series
 -   Author, Practical R for Mass Communication & Journalism (CRC Press)
 :::
@@ -173,17 +173,17 @@ https://leaflet-extras.github.io/leaflet-providers/preview/
 ## Add more data layers
 
 ```{r}
-mapview(cambridge, zcol = "population", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery")) +
-mapview(cambridge, zcol = "popDensity") +
-mapview(cambridge, zcol = "dep2", laye.name = "Econ depriv in 2 categories")  
+mapview(cambridge, zcol = "population", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery"), alpha.regions = 1) +
+mapview(cambridge, zcol = "popDensity", alpha.regions = 1) +
+mapview(cambridge, zcol = "dep2", layer.name = "Econ depriv in 2 categories", alpha.regions = 1)  
 ```
 
 ## Turn off legends with legend = false
 
 ```{r}
-mapview(cambridge, zcol = "population", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery"), legend = FALSE) +
-mapview(cambridge, zcol = "popDensity", legend = FALSE) +
-mapview(cambridge, zcol = "dep2", laye.name = "Econ depriv in 2 categories", legend = FALSE)  
+mapview(cambridge, zcol = "population", map.types = c("CartoDB.Positron", "OpenStreetMap.Mapnik", "Esri.WorldImagery"), alpha.regions = 1, legend = FALSE) +
+mapview(cambridge, zcol = "popDensity", legend = FALSE, alpha.regions = 1) +
+mapview(cambridge, zcol = "dep2", laye.name = "Econ depriv in 2 categories", legend = FALSE, alpha.regions = 1)  
 ```
 
 ## Change the default color palette
